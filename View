@@ -1,0 +1,134 @@
+
+CREATE VIEW [dbo].[ClientsDiscountView] AS
+SELECT 
+    c.[FirstName],
+    c.[LastName],
+    c.[PhoneNumber],
+    c.[Email],
+    d.[Detail] AS [DiscountDetail],
+    d.[DiscountPercent],
+    d.[EndDate]
+FROM 
+    [dbo].[Clients] c
+INNER JOIN 
+    [dbo].[Discount] d ON c.[DiscountID] = d.[DiscountID]
+Where
+   DiscountPercent > 50;
+GO
+
+CREATE VIEW [dbo].[DamagedPreparateExportView] AS
+SELECT 
+    L.[LostOrDamagedID], 
+    P.[NameOfPreparate], 
+    L.[CountOfDamaged], 
+    L.[CostOfDamaged], 
+    E.[NameOfExportCompany]
+FROM 
+    [dbo].[LostOrDamagedPreparate] L
+INNER JOIN 
+    [dbo].[Preparate] P ON L.[PreparateID] = P.[PreparateID]
+INNER JOIN 
+    [dbo].[ExportOfPreparate] E ON P.[ImportID] = E.[ImportID]
+Where
+	CountOfDamaged > 5;
+GO
+CREATE VIEW [dbo].[HistoryOfPurchaseView_HighCost] AS
+SELECT TOP 100
+    h.[HistoryID],
+    c.[FirstName],
+    c.[LastName],
+    p.[NameOfPreparate],
+    h.[Count],
+    h.[TotalCost],
+    d.[DiscountPercent],
+    h.[DateOfPurchase]
+FROM 
+    [dbo].[HistoryOfPurchase] h
+INNER JOIN 
+    [dbo].[Clients] c ON h.[ClientID] = c.[ClientID]
+INNER JOIN 
+    [dbo].[Preparate] p ON h.[PreparateID] = p.[PreparateID]
+LEFT JOIN 
+    [dbo].[Discount] d ON h.[DiscountID] = d.[DiscountID]
+WHERE 
+    h.[TotalCost] > 20
+GO
+
+
+CREATE VIEW [dbo].[LostOrDamagedPreparateView] AS
+SELECT 
+    l.[LostOrDamagedID],
+    p.[NameOfPreparate],
+    l.[CountOfDamaged],
+    l.[CostOfDamaged]
+FROM 
+    [dbo].[LostOrDamagedPreparate] l
+INNER JOIN 
+    [dbo].[Preparate] p ON l.[PreparateID] = p.[PreparateID]
+GO
+
+CREATE VIEW [dbo].[OrdersView] AS
+SELECT TOP 100
+    o.[OrderID],
+    c.[FirstName] AS [ClientFirstName],
+    c.[LastName] AS [ClientLastName],
+    w.[FirstName] AS [WorkerFirstName],
+    w.[LastName] AS [WorkerLastName],
+    o.[DateOfOrder]
+FROM 
+    [dbo].[Orders] o
+INNER JOIN 
+    [dbo].[Clients] c ON o.[ClientID] = c.[ClientID]
+INNER JOIN 
+    [dbo].[Workers] w ON o.[WorkerID] = w.[WorkerID]
+GO
+
+CREATE VIEW [dbo].[PharmacyBudgetView] AS
+SELECT 
+    w.[NameofPharmacy],
+    w.[HomeAddress],
+    b.[TotalSummary],
+    b.[ForWorkers],
+    b.[ForPreparate],
+    b.[Remainder],
+    e.[NameOfPreparate],
+    e.[CountOfPreparate],
+    e.[CostForAll]
+FROM 
+    [dbo].[WebOfPharmacy] w
+INNER JOIN 
+    [dbo].[Budget] b ON w.[BudgetID] = b.[BudgetID]
+INNER JOIN 
+    [dbo].[ExportOfPreparate] e ON w.[ImportID] = e.[ImportID]
+GO
+
+CREATE VIEW [dbo].[PreparateContraindicationsView] AS
+SELECT 
+    P.[NameOfPreparate], 
+    P.[CostOfPreparate], 
+    G.[NameOfGroup], 
+    C.[Detail] AS [ContraindicationDetail]
+FROM 
+    [dbo].[Preparate] P
+INNER JOIN 
+    [dbo].[Groups] G ON P.[GroupID] = G.[GroupID]
+INNER JOIN 
+    [dbo].[Contraindications] C ON P.[ContraindicationID] = C.[ContraindicationID];
+GO
+
+CREATE VIEW [dbo].[ReceiptsView] AS
+SELECT 
+    R.[ReceiptID], 
+    C.[FirstName] AS [ClientFirstName], 
+    C.[LastName] AS [ClientLastName], 
+    R.[Date] AS [ReceiptDate], 
+    HP.[TotalCost], 
+    HP.[Count]
+FROM 
+    [dbo].[Receipts] R
+INNER JOIN 
+    [dbo].[Clients] C ON R.[ClientID] = C.[ClientID]
+INNER JOIN 
+    [dbo].[HistoryOfPurchase] HP ON R.[ClientID] = HP.[ClientID];
+GO
+
