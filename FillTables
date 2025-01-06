@@ -1,0 +1,84 @@
+
+INSERT INTO [dbo].[Contraindications] 
+    ([Detail])
+VALUES 
+    ('Not recommended for pregnant women'),
+    ('Avoid with severe liver dysfunction'),
+    ('Contraindicated with allergy to penicillin'),
+    ('Not to be used by individuals with kidney disease'),
+    ('May cause severe dizziness in elderly patients');
+
+INSERT INTO [dbo].[Preparate] 
+    ([ImportID], [DisastersID], [GroupID], [ContraindicationID], [NameOfPreparate], [CostOfPreparate])
+VALUES 
+    (1, 1, 1, 1, 'Aspirin', 5.00),
+    (2, 2, 2, 2, 'Amoxicillin', 12.00),
+    (3, 3, 3, 3, 'Metformin', 15.00),
+    (4, 4, 4, 4, 'Atenolol', 8.50),
+    (5, 5, 5, 5, 'Gabapentin', 20.00);
+
+INSERT INTO [dbo].[Orders] 
+    ([ClientID], [WorkerID], [DateOfOrder])
+VALUES 
+    (1, 1, '2024-01-15'),
+    (2, 2, '2024-02-10'),
+    (3, 3, '2024-03-05'),
+    (4, 4, '2024-04-18'),
+    (5, 5, '2024-05-20');
+
+INSERT INTO [dbo].[Feedback] 
+    ([ClientID], [DateOfResponse], [Detail])
+VALUES 
+    (1, '2024-01-20', 'Great service and fast delivery.'),
+    (2, '2024-02-15', 'The product quality is excellent.'),
+    (3, '2024-03-10', 'Customer support was very helpful.'),
+    (4, '2024-04-22', 'Fast processing but packaging could be better.'),
+    (5, '2024-05-25', 'Prices are very competitive, will order again.');
+
+INSERT INTO [dbo].[Budget] 
+    ([Month], [TotalSummary], [ForWorkers], [ForPreparate], [ForSupportPlace], [Remainder])
+VALUES 
+    ('January', 50000, 15000, 20000, 5000, 10000),
+    ('February', 60000, 18000, 25000, 6000, 11000),
+    ('March', 70000, 20000, 30000, 7000, 13000),
+    ('April', 55000, 16000, 22000, 5500, 11500),
+    ('May', 72000, 21000, 32000, 7200, 11800);
+
+INSERT INTO [dbo].[Receipts] 
+    ([ClientID], [Date], [TotalAmount])
+VALUES 
+    (1, '2024-01-20', 100.50),
+    (2, '2024-02-15', 150.75),
+    (3, '2024-03-10', 200.00),
+    (4, '2024-04-22', 125.30),
+    (5, '2024-05-25', 175.90);
+
+
+INSERT INTO [dbo].[HistoryOfPurchase] 
+    ([DiscountID], [ClientID], [PreparateID], [Count], [Discount], [TotalCost], [DateOfPurchase])
+VALUES 
+    (1, 1, 1, 2, 5, 10.00, '2024-01-20'),  
+    (2, 2, 2, 1, 2, 12.00, '2024-02-15'),    
+    (1, 3, 3, 3, 3, 45.00, '2024-03-10'),  
+    (4, 4, 4, 1, 0, 8.50, '2024-04-22'),    
+    (5, 5, 5, 2, 4, 40.00, '2024-05-25');
+
+
+INSERT INTO [dbo].[LostOrDamagedPreparate] 
+    ([PreparateID], [CountOfDamaged], [CostOfDamaged])
+VALUES 
+    (1, 10, 50.00),
+    (2, 5, 60.00),
+    (3, 8, 120.00),
+    (4, 3, 25.50),
+    (5, 12, 240.00);
+
+INSERT INTO [dbo].[WebOfPharmacy] 
+    ([WorkerID], [BudgetID], [ImportID], [NameofPharmacy], [CountOfWorkers], [HomeAddress])
+VALUES 
+    (1, 1, 1, 'Pharmacy Central', 10, '123 Health St'),
+    (2, 2, 2, 'Pharmacy Plus', 8, '456 Wellness Ave'),
+    (3, 3, 3, 'Pharmacy Elite', 12, '789 Medical Blvd'),
+    (4, 4, 4, 'Pharmacy Express', 7, '101 Quick Care Rd'),
+    (5, 5, 5, 'Pharmacy Max', 15, '202 Vitality Ln');
+
