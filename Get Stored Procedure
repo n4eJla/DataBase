@@ -1,0 +1,153 @@
+CREATE OR ALTER PROCEDURE [dbo].[GetClients]
+    @ClientID INT = NULL,
+    @ClientName NVARCHAR(100) = NULL,
+    @PageNumber INT = 1,
+    @PageSize INT = 10,
+    @SortColumn NVARCHAR(50) = 'ClientName',
+    @SortDirection BIT = 0
+AS
+BEGIN
+    IF @ClientID IS NOT NULL AND NOT EXISTS(SELECT * FROM Clients WHERE ClientID = @ClientID)
+        BEGIN
+            PRINT N'Неправильне значення @ClientID'
+            RETURN
+        END
+
+    IF @PageNumber < 1 SET @PageNumber = 1;
+    IF @PageSize < 1 SET @PageSize = 10;
+
+    DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
+
+    IF @SortColumn NOT IN ('ClientID', 'ClientName')
+        BEGIN
+            SET @SortColumn = 'ClientName';
+        END
+
+    SELECT ClientID, LastName
+    FROM Clients
+    WHERE (@ClientID IS NULL OR ClientID = @ClientID)
+      AND (@ClientName IS NULL OR LastName LIKE @ClientName + '%')
+    ORDER BY
+        CASE WHEN @SortDirection = 0 THEN
+                 CASE @SortColumn
+                     WHEN 'ClientID' THEN CAST(ClientID AS NVARCHAR)
+                     WHEN 'ClientName' THEN LastName        
+                     END
+            END ASC,
+        CASE WHEN @SortDirection = 1 THEN
+                 CASE @SortColumn
+                     WHEN 'ClientID' THEN CAST(ClientID AS NVARCHAR)
+                     WHEN 'ClientName' THEN LastName                            
+                     END
+            END DESC
+    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[GetDisasters]
+    @DisastersID INT = NULL,
+	@NameOfDisaster NVARCHAR(50) = NULL,
+	@Detail NVARCHAR(100) = NULL,
+	@PageNumber INT = 1,
+	@PageSize INT = 10,
+    @SortColumn NVARCHAR(50) = 'NameOfDisaster',
+    @SortDirection BIT = 0                 
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF @DisastersID IS NOT NULL AND NOT EXISTS(SELECT * FROM Disasters WHERE DisastersID = @DisastersID)
+        BEGIN
+            PRINT N'Неправильне значення @DisastersID'
+            RETURN
+        END
+
+    IF @PageNumber < 1 SET @PageNumber = 1;
+    IF @PageSize < 1 SET @PageSize = 10;
+
+    DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
+
+    IF @SortColumn NOT IN ('DisastersID', 'NameOfDisaster', 'Detail')
+        BEGIN
+            SET @SortColumn = 'NameOfDisaster';
+        END
+
+    SELECT DisastersID, NameOfDisaster, Detail
+    FROM Disasters
+    WHERE (@DisastersID IS NULL OR DisastersID = @DisastersID)
+      AND (@NameOfDisaster IS NULL OR NameOfDisaster LIKE @NameOfDisaster + '%')
+      AND (@Detail IS NULL OR Detail LIKE '%' + @Detail + '%')
+    ORDER BY
+        CASE WHEN @SortDirection = 0 THEN
+                 CASE @SortColumn
+                     WHEN 'DisastersID' THEN CAST(DisastersID AS NVARCHAR)
+                     WHEN 'NameOfDisaster' THEN NameOfDisaster
+                     WHEN 'Detail' THEN Detail
+                     END
+            END ASC,
+        CASE WHEN @SortDirection = 1 THEN
+                 CASE @SortColumn
+                      WHEN 'DisastersID' THEN CAST(DisastersID AS NVARCHAR)
+                      WHEN 'NameOfDisaster' THEN NameOfDisaster
+                      WHEN 'Detail' THEN Detail
+                     END
+            END DESC
+    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+END
+GO
+
+
+
+
+CREATE OR ALTER PROCEDURE [dbo].[GetPreparates]
+    @PreparateID INT = NULL,             
+    @NameOfPreparate NVARCHAR(50) = NULL,                   
+    @CostOfPreparate FLOAT = NULL,                   
+    @PageNumber INT = 1,
+    @PageSize INT = 10,
+    @SortColumn NVARCHAR(50) = 'NameOfPreparate',
+    @SortDirection BIT = 0
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @PreparateID IS NOT NULL AND NOT EXISTS(SELECT * FROM Preparate WHERE PreparateID = @PreparateID)
+    BEGIN
+        PRINT N'Неправильне значення @PreparateID'
+        RETURN
+    END
+
+    IF @PageNumber < 1 SET @PageNumber = 1;
+    IF @PageSize < 1 SET @PageSize = 10;
+
+    DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
+
+    IF @SortColumn NOT IN ('PreparateID', 'NameOfPreparate', 'CostOfPreparate')
+    BEGIN
+        SET @SortColumn = 'NameOfPreparate';
+    END
+
+    SELECT PreparateID, NameOfPreparate, CostOfPreparate
+    FROM Preparate
+    WHERE (@PreparateID IS NULL OR PreparateID = @PreparateID)
+      AND (@NameOfPreparate IS NULL OR NameOfPreparate LIKE @NameOfPreparate + '%')
+      AND (@CostOfPreparate IS NULL OR CostOfPreparate = @CostOfPreparate) 
+    ORDER BY
+        CASE WHEN @SortDirection = 0 THEN
+                 CASE @SortColumn
+                     WHEN 'PreparateID' THEN CAST(PreparateID AS NVARCHAR)
+                     WHEN 'NameOfPreparate' THEN NameOfPreparate
+                     WHEN 'CostOfPreparate' THEN CAST(CostOfPreparate AS NVARCHAR)
+                 END
+            END ASC,
+        CASE WHEN @SortDirection = 1 THEN
+                 CASE @SortColumn
+                     WHEN 'PreparateID' THEN CAST(PreparateID AS NVARCHAR)
+                     WHEN 'NameOfPreparate' THEN NameOfPreparate
+                     WHEN 'CostOfPreparate' THEN CAST(CostOfPreparate AS NVARCHAR)
+                 END
+            END DESC
+    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+END
+GO
