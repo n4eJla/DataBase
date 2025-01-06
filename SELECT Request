@@ -1,0 +1,142 @@
+SELECT 
+    h.[HistoryID],
+    c.[FirstName],
+    c.[LastName],
+    p.[NameOfPreparate],
+    h.[Count],
+    h.[TotalCost],
+    d.[DiscountPercent],
+    h.[DateOfPurchase]
+FROM 
+    [dbo].[HistoryOfPurchase] h
+INNER JOIN 
+    [dbo].[Clients] c ON h.[ClientID] = c.[ClientID]
+INNER JOIN 
+    [dbo].[Preparate] p ON h.[PreparateID] = p.[PreparateID]
+LEFT JOIN 
+    [dbo].[Discount] d ON h.[DiscountID] = d.[DiscountID]
+ORDER BY 
+    h.[DateOfPurchase] DESC;
+
+SELECT 
+    o.[OrderID],
+    c.[FirstName] AS [ClientFirstName],
+    c.[LastName] AS [ClientLastName],
+    w.[FirstName] AS [WorkerFirstName],
+    w.[LastName] AS [WorkerLastName],
+    o.[DateOfOrder]
+FROM 
+    [dbo].[Orders] o
+INNER JOIN 
+    [dbo].[Clients] c ON o.[ClientID] = c.[ClientID]
+INNER JOIN 
+    [dbo].[Workers] w ON o.[WorkerID] = w.[WorkerID]
+ORDER BY 
+    o.[DateOfOrder] DESC;
+
+SELECT 
+    w.[NameofPharmacy],
+    w.[HomeAddress],
+    b.[TotalSummary],
+    b.[ForWorkers],
+    b.[ForPreparate],
+    b.[Remainder],
+    e.[NameOfPreparate],
+    e.[CountOfPreparate],
+    e.[CostForAll]
+FROM 
+    [dbo].[WebOfPharmacy] w
+INNER JOIN 
+    [dbo].[Budget] b ON w.[BudgetID] = b.[BudgetID]
+INNER JOIN 
+    [dbo].[ExportOfPreparate] e ON w.[ImportID] = e.[ImportID]
+ORDER BY 
+    w.[NameofPharmacy];
+
+SELECT 
+    c.[FirstName],
+    c.[LastName],
+    c.[PhoneNumber],
+    c.[Email],
+    d.[Detail] AS [DiscountDetail],
+    d.[DiscountPercent],
+    d.[EndDate]
+FROM 
+    [dbo].[Clients] c
+INNER JOIN 
+    [dbo].[Discount] d ON c.[DiscountID] = d.[DiscountID]
+ORDER BY 
+    d.[EndDate] DESC;
+
+SELECT 
+    l.[LostOrDamagedID],
+    p.[NameOfPreparate],
+    l.[CountOfDamaged],
+    l.[CostOfDamaged]
+FROM 
+    [dbo].[LostOrDamagedPreparate] l
+INNER JOIN 
+    [dbo].[Preparate] p ON l.[PreparateID] = p.[PreparateID]
+ORDER BY 
+    l.[CostOfDamaged] DESC;
+
+SELECT 
+    O.OrderID, 
+    O.DateOfOrder, 
+    C.FirstName AS ClientFirstName, 
+    C.LastName AS ClientLastName, 
+    W.FirstName AS WorkerFirstName, 
+    W.LastName AS WorkerLastName
+FROM Orders O
+INNER JOIN Clients C ON O.ClientID = C.ClientID
+INNER JOIN Workers W ON O.WorkerID = W.WorkerID;
+
+SELECT 
+    P.NameOfPreparate, 
+    P.CostOfPreparate, 
+    G.NameOfGroup, 
+    C.Detail AS ContraindicationDetail
+FROM Preparate P
+INNER JOIN Groups G ON P.GroupID = G.GroupID
+INNER JOIN Contraindications C ON P.ContraindicationID = C.ContraindicationID;
+
+SELECT 
+    R.ReceiptID, 
+    C.FirstName AS ClientFirstName, 
+    C.LastName AS ClientLastName, 
+    R.Date AS ReceiptDate, 
+    HP.TotalCost, 
+    HP.Count
+FROM Receipts R
+INNER JOIN Clients C ON R.ClientID = C.ClientID
+INNER JOIN HistoryOfPurchase HP ON R.ClientID = HP.ClientID;
+
+SELECT 
+    L.LostOrDamagedID, 
+    P.NameOfPreparate, 
+    L.CountOfDamaged, 
+    L.CostOfDamaged, 
+    E.NameOfExportCompany
+FROM LostOrDamagedPreparate L
+INNER JOIN Preparate P ON L.PreparateID = P.PreparateID
+INNER JOIN ExportOfPreparate E ON P.ImportID = E.ImportID;
+
+SELECT 
+    W.FirstName, 
+    W.LastName, 
+    O.OrderID, 
+    F.Detail AS FeedbackDetail, 
+    F.DateOfResponse
+FROM Workers W
+INNER JOIN Orders O ON W.WorkerID = O.WorkerID
+LEFT JOIN Feedback F ON O.ClientID = F.ClientID;
+
+SELECT 
+    W.NameofPharmacy, 
+    B.TotalSummary, 
+    B.ForWorkers, 
+    E.NameOfPreparate, 
+    E.CostForAll
+FROM WebOfPharmacy W
+INNER JOIN Budget B ON W.BudgetID = B.BudgetID
+INNER JOIN ExportOfPreparate E ON W.ImportID = E.ImportID;
