@@ -1,0 +1,70 @@
+--Clients--
+ALTER TABLE [dbo].[Clients]  WITH CHECK ADD FOREIGN KEY([DiscountID])
+REFERENCES [dbo].[Discount] ([DiscountID])
+GO
+--Feedback--
+ALTER TABLE [dbo].[Feedback]  WITH CHECK ADD FOREIGN KEY([ClientID])
+REFERENCES [dbo].[Clients] ([ClientID])
+GO
+--Groups--
+ALTER TABLE [dbo].[Groups]  WITH CHECK ADD FOREIGN KEY([LicenseID])
+REFERENCES [dbo].[License] ([LicenseID])
+GO
+--HistoryOfPurchase--
+ALTER TABLE [dbo].[HistoryOfPurchase]  WITH CHECK ADD FOREIGN KEY([ClientID])
+REFERENCES [dbo].[Clients] ([ClientID])
+GO
+
+ALTER TABLE [dbo].[HistoryOfPurchase]  WITH CHECK ADD FOREIGN KEY([DiscountID])
+REFERENCES [dbo].[Discount] ([DiscountID])
+GO
+
+ALTER TABLE [dbo].[HistoryOfPurchase]  WITH CHECK ADD FOREIGN KEY([PreparateID])
+REFERENCES [dbo].[Preparate] ([PreparateID])
+GO
+--LostOrDamaged--
+ALTER TABLE [dbo].[LostOrDamagedPreparate]  WITH CHECK ADD FOREIGN KEY([PreparateID])
+REFERENCES [dbo].[Preparate] ([PreparateID])
+GO
+--Orders--
+ALTER TABLE [dbo].[Orders]  WITH CHECK ADD FOREIGN KEY([ClientID])
+REFERENCES [dbo].[Clients] ([ClientID])
+GO
+
+ALTER TABLE [dbo].[Orders]  WITH CHECK ADD FOREIGN KEY([WorkerID])
+REFERENCES [dbo].[Workers] ([WorkerID])
+GO
+--Preparate--
+ALTER TABLE [dbo].[Preparate]  WITH CHECK ADD FOREIGN KEY([ContraindicationID])
+REFERENCES [dbo].[Contraindications] ([ContraindicationID])
+GO
+
+ALTER TABLE [dbo].[Preparate]  WITH CHECK ADD FOREIGN KEY([DisastersID])
+REFERENCES [dbo].[Disasters] ([DisastersID])
+GO
+
+ALTER TABLE [dbo].[Preparate]  WITH CHECK ADD FOREIGN KEY([GroupID])
+REFERENCES [dbo].[Groups] ([GroupID])
+GO
+
+ALTER TABLE [dbo].[Preparate]  WITH CHECK ADD FOREIGN KEY([ImportID])
+REFERENCES [dbo].[ExportOfPreparate] ([ImportID])
+GO
+
+--Receipts--
+ALTER TABLE [dbo].[Receipts]  WITH CHECK ADD FOREIGN KEY([ClientID])
+REFERENCES [dbo].[Clients] ([ClientID])
+GO
+
+--WebOfPharmacy--
+ALTER TABLE [dbo].[WebOfPharmacy]  WITH CHECK ADD FOREIGN KEY([BudgetID])
+REFERENCES [dbo].[Budget] ([BudgetID])
+GO
+
+ALTER TABLE [dbo].[WebOfPharmacy]  WITH CHECK ADD FOREIGN KEY([ImportID])
+REFERENCES [dbo].[ExportOfPreparate] ([ImportID])
+GO
+
+ALTER TABLE [dbo].[WebOfPharmacy]  WITH CHECK ADD FOREIGN KEY([WorkerID])
+REFERENCES [dbo].[Workers] ([WorkerID])
+GO
