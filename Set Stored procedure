@@ -1,0 +1,1015 @@
+CREATE   PROCEDURE [dbo].[sp_SetBudget]
+	@BudgetID		[int] =	      NULL OUTPUT,
+	@Month			[nvarchar](20) =    NULL,
+	@TotalSummary	[float]  =   NULL,
+	@ForWorkers		[float]		=  NULL,
+	@ForPreparate	[float]	 = NULL,
+	@ForSupportPlace [float]  = NULL,
+	@Remainder			[float] = NULL
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+IF @BudgetID IS NULL AND @TotalSummary IS NULL
+BEGIN
+    PRINT 'Invalid value of @TotalSummary'
+    RETURN
+END
+BEGIN TRY
+    IF @BudgetID IS NULL
+    BEGIN
+        SET @BudgetID = 1 + (SELECT TOP(1) BudgetID FROM dbo.Budget ORDER BY BudgetID DESC)
+
+        INSERT dbo.Budget([Month], TotalSummary, ForWorkers, ForPreparate, ForSupportPlace, Remainder,CreatedBy,CreatedDate)
+        VALUES(@Month, @TotalSummary, @ForWorkers, @ForPreparate, @ForSupportPlace, @Remainder,@user,@currentdate)
+		
+    END
+    ELSE
+        UPDATE dbo.Budget
+        SET 
+     [Month]			   = ISNULL ( @Month			, [Month]				),  
+     TotalSummary     = ISNULL ( @TotalSummary   	, TotalSummary   	),
+     ForWorkers       = ISNULL ( @ForWorkers     	, ForWorkers     	),
+     ForPreparate     = ISNULL ( @ForPreparate   	, ForPreparate   	),
+     ForSupportPlace  = ISNULL ( @ForSupportPlace	, ForSupportPlace	),
+     Remainder		   = ISNULL ( @Remainder	,     Remainder	),
+	 ModifiedBy = @user,
+			    ModifiedDate = @currentdate
+        WHERE BudgetID = @BudgetID
+END TRY
+BEGIN CATCH
+    PRINT ERROR_MESSAGE()
+END CATCH
+END
+GO
+
+CREATE     PROCEDURE [dbo].[sp_SetClient]
+    @ClientID    INT = NULL OUTPUT,
+	@DiscountID		INT = NULL,
+    @FirstName   NVARCHAR(50) = NULL,
+    @LastName    NVARCHAR(50) = NULL,
+	@DateOfBirth   datetime = NULL ,
+    @HomeAddress  NVARCHAR(100) = NULL,
+    @PhoneNumber nvarchar(10) = NULL,
+    @Email		 NVARCHAR(100) = NULL,
+	@VIP		 BIT  = NULL 
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+    IF @ClientID IS NULL AND @FirstName IS NULL
+    BEGIN
+        PRINT 'Invalid value of @FirstName'
+        RETURN
+    END
+	IF @ClientID IS NULL AND @LastName IS NULL
+    BEGIN
+        PRINT 'Invalid value of @LastName'
+        RETURN
+    END
+
+    BEGIN TRY
+        IF @ClientID IS NULL
+        BEGIN
+            --SET @ClientID = 1 + (SELECT ISNULL(MAX(ClientID), 0) FROM dbo.Clients)
+
+            INSERT INTO dbo.Clients (DiscountID, FirstName, LastName,DateOfBirth,HomeAddress,PhoneNumber, Email,VIP, CreatedBy, CreatedDate)
+            VALUES (@DiscountID, @FirstName, @LastName,@DateOfBirth,@HomeAddress,@PhoneNumber,@Email,@VIP,@user,@currentdate)
+			SET @ClientID = @@IDENTITY
+
+        END
+        ELSE
+
+			IF NOT EXISTS (SELECT 1 FROM dbo.Clients WHERE DiscountID = @DiscountID)
+            BEGIN
+				PRINT N'Роль з таким @DiscountID не існує'
+                RETURN
+            END
+            UPDATE dbo.Clients
+            SET 
+				DiscountID = ISNULL(@DiscountID, DiscountID),
+				FirstName = ISNULL(@FirstName, FirstName),
+                LastName = ISNULL(@LastName, LastName),
+				DateOfBirth=ISNULL(@DateOfBirth, DateOfBirth),
+				HomeAddress=ISNULL(@HomeAddress, HomeAddress),
+				PhoneNumber =ISNULL(@PhoneNumber, PhoneNumber), 
+                Email = ISNULL(@Email, Email),
+				VIP = ISNULL(@VIP, VIP),
+				ModifiedBy = @user,
+			    ModifiedDate = @currentdate
+            WHERE ClientID = @ClientID
+    END TRY
+    BEGIN CATCH
+        PRINT ERROR_MESSAGE()
+    END CATCH
+END
+GO
+
+CREATE     PROCEDURE [dbo].[sp_SetContraindications]
+	@ContraindicationID [int] = NULL OUTPUT,
+	@Detail [nvarchar](100) = NULL
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+IF @ContraindicationID IS NULL AND @Detail IS NULL
+BEGIN
+    PRINT 'Invalid value of @Detail'
+    RETURN
+END
+BEGIN TRY
+    IF @ContraindicationID IS NULL
+    BEGIN
+        --SET @ContraindicationID = 1 + (SELECT TOP(1) ContraindicationID FROM dbo.Contraindications ORDER BY ContraindicationID DESC)
+
+        INSERT dbo.Contraindications(Detail,CreatedBy,CreatedDate)
+        VALUES(@Detail,@user,@currentdate)
+		SET @ContraindicationID = @@IDENTITY
+    END
+    ELSE
+        UPDATE dbo.Contraindications
+        SET   
+     Detail = ISNULL ( @Detail, Detail),
+	 ModifiedBy = @user,
+     ModifiedDate = @currentdate
+        WHERE ContraindicationID = @ContraindicationID
+END TRY
+BEGIN CATCH
+    PRINT ERROR_MESSAGE()
+END CATCH
+END
+GO
+
+CREATE    PROCEDURE [dbo].[sp_SetDisasters]
+	@DisastersID	[int]  = NULL OUTPUT,
+	@NameOfDisaster [nvarchar](50) = NULL,
+	@Detail			[nvarchar](100) =   NULL
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+IF @DisastersID IS NULL AND @NameOfDisaster IS NULL
+BEGIN
+    PRINT 'Invalid value of @NameOfDisaster'
+    RETURN
+END
+IF @DisastersID IS NULL AND @Detail IS NULL
+BEGIN
+    PRINT 'Invalid value of @Detail'
+    RETURN
+END
+BEGIN TRY
+    IF @DisastersID IS NULL
+    BEGIN
+        --SET @DisastersID = 1 + (SELECT TOP(1) DisastersID FROM dbo.Disasters ORDER BY DisastersID DESC)
+
+        INSERT dbo.Disasters(NameOfDisaster, Detail,CreatedBy,CreatedDate)
+        VALUES(@NameOfDisaster, @Detail,@user,@currentdate)
+		SET @DisastersID = @@IDENTITY
+
+    END
+    ELSE
+        UPDATE TOP(1) dbo.Disasters
+        SET 
+      NameOfDisaster = ISNULL (@NameOfDisaster,NameOfDisaster),
+      Detail = ISNULL (@Detail,Detail),  
+      ModifiedBy = @user,
+      ModifiedDate = @currentdate
+        WHERE DisastersID = @DisastersID
+END TRY
+BEGIN CATCH
+    PRINT ERROR_MESSAGE()
+END CATCH
+END
+GO
+
+CREATE    PROCEDURE [dbo].[sp_SetDiscount]
+	@DiscountID			[int] = NULL OUTPUT,
+	@Code				[nvarchar](10)	    = NULL,
+	@Detail				[nvarchar](50)			= NULL,
+	@DiscountPercent	[float]		= NULL,
+	@EndDate			[datetime]				= NULL
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+IF @DiscountID IS NULL AND @Code IS NULL
+BEGIN
+    PRINT 'Invalid value of @Code'
+    RETURN
+END
+IF @DiscountID IS NULL AND @Detail IS NULL
+BEGIN
+    PRINT 'Invalid value of @Detail'
+    RETURN
+END
+IF @DiscountID IS NULL AND @EndDate IS NULL
+BEGIN
+    PRINT 'Invalid value of @EndDate'
+    RETURN
+END
+BEGIN TRY
+    IF @DiscountID IS NULL
+    BEGIN
+        --SET @DiscountID = 1 + (SELECT TOP(1) @DiscountID FROM dbo.Discount ORDER BY @DiscountID DESC)
+
+        INSERT dbo.Discount(Code, Detail,DiscountPercent,EndDate,CreatedBy,CreatedDate)
+        VALUES(@Code, @Detail,@DiscountPercent,@EndDate,@user,@currentdate)
+		SET @DiscountID = @@IDENTITY
+
+    END
+    ELSE
+        UPDATE TOP(1) dbo.Discount
+        SET 
+      Code		= ISNULL (@Code        ,Code      ),
+      Detail				= ISNULL (@Detail			     ,Detail			   ),  
+	  DiscountPercent		= ISNULL (@DiscountPercent        ,DiscountPercent      ),
+      EndDate				= ISNULL (@EndDate			     ,EndDate			   ),  
+      ModifiedBy = @user,
+      ModifiedDate = @currentdate
+        WHERE DiscountID = @DiscountID
+END TRY
+BEGIN CATCH
+    PRINT ERROR_MESSAGE()
+END CATCH
+END
+GO
+
+
+CREATE    PROCEDURE [dbo].[sp_SetExportOfPreparate]
+	@ImportID			 [int]  = NULL OUTPUT,
+	@NameOfPreparate	 [nvarchar](50) = NULL,
+	@NameOfExportCompany [nvarchar](50) = NULL,
+	@DateOfExport		 [datetime] = NULL,
+	@CountOfPreparate    [int] = NULL,
+	@CostForAll			 [int] = NULL
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+IF @ImportID IS NULL AND @NameOfPreparate IS NULL
+BEGIN
+    PRINT 'Invalid value of @NameOfPreparate'
+    RETURN
+END
+IF @ImportID IS NULL AND @NameOfExportCompany IS NULL
+BEGIN
+    PRINT 'Invalid value of @NameOfExportCompany'
+    RETURN
+END
+IF @ImportID IS NULL AND @DateOfExport IS NULL
+BEGIN
+    PRINT 'Invalid value of @DateOfExport'
+    RETURN
+END
+IF @ImportID IS NULL AND @CountOfPreparate IS NULL
+BEGIN
+    PRINT 'Invalid value of @CountOfPreparate'
+    RETURN
+END
+IF @ImportID IS NULL AND @CostForAll IS NULL
+BEGIN
+    PRINT 'Invalid value of @CostForAll'
+    RETURN
+END
+BEGIN TRY
+    IF @ImportID IS NULL
+    BEGIN
+        -- SET @ImportID = 1 + (SELECT TOP(1) @ImportID FROM dbo.ExportOfPreparate ORDER BY @ImportID DESC)
+
+        INSERT dbo.ExportOfPreparate(NameOfPreparate, NameOfExportCompany,DateOfExport,CountOfPreparate,CostForAll,CreatedBy,CreatedDate)
+        VALUES(@NameOfPreparate, @NameOfExportCompany,@DateOfExport,@CountOfPreparate,@CostForAll,@user,@currentdate)
+		SET @ImportID = @@IDENTITY
+    END
+    ELSE
+        UPDATE TOP(1) dbo.ExportOfPreparate
+        SET 
+      NameOfPreparate					= ISNULL (@NameOfPreparate       ,NameOfPreparate      ),
+      NameOfExportCompany				= ISNULL (@NameOfExportCompany			     ,NameOfExportCompany			   ),  
+	  DateOfExport		= ISNULL (@DateOfExport        ,DateOfExport      ),
+      CountOfPreparate				= ISNULL (@CountOfPreparate			     ,CountOfPreparate			   ), 
+	  CostForAll				= ISNULL (@CostForAll			     ,CostForAll			   ),
+      ModifiedBy = @user,
+      ModifiedDate = @currentdate
+        WHERE ImportID = @ImportID
+END TRY
+BEGIN CATCH
+    PRINT ERROR_MESSAGE()
+END CATCH
+END
+GO
+
+
+CREATE   PROCEDURE [dbo].[sp_SetFeedback]
+	@ResponseID [int] = NULL OUTPUT,
+	@ClientID [int] = NULL,
+	@DateOfResponse [datetime] = NULL,
+	@Detail [nvarchar](100) = NULL
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+IF @ResponseID IS NULL AND @ClientID IS NULL
+BEGIN
+    PRINT 'Invalid value of @ClientID'
+    RETURN
+END
+IF @ResponseID IS NULL AND @DateOfResponse IS NULL
+BEGIN
+    PRINT 'Invalid value of @DateOfResponse'
+    RETURN
+END
+IF @ResponseID IS NULL AND @Detail IS NULL
+BEGIN
+    PRINT 'Invalid value of @Detail'
+    RETURN
+END
+
+BEGIN TRY
+    IF @ResponseID IS NULL
+    BEGIN
+        -- SET @ImportID = 1 + (SELECT TOP(1) @ImportID FROM dbo.ExportOfPreparate ORDER BY @ImportID DESC)
+
+        INSERT dbo.Feedback(ClientID, DateOfResponse,Detail,CreatedBy,CreatedDate)
+        VALUES(@ClientID, @DateOfResponse,@Detail,@user,@currentdate)
+		SET @ResponseID = @@IDENTITY
+    END
+    ELSE
+			IF NOT EXISTS (SELECT 1 FROM dbo.Feedback WHERE ClientID = @ClientID)
+            BEGIN
+				PRINT N'Роль з таким @ClientID не існує'
+                RETURN
+            END
+
+        UPDATE TOP(1) dbo.Feedback
+        SET 
+      ClientID					= ISNULL (@ClientID,ClientID),
+      DateOfResponse				= ISNULL (@DateOfResponse,DateOfResponse),  
+	  Detail						= ISNULL (@Detail,Detail),
+      ModifiedBy = @user,
+      ModifiedDate = @currentdate
+        WHERE ResponseID = @ResponseID
+END TRY
+BEGIN CATCH
+    PRINT ERROR_MESSAGE()
+END CATCH
+END
+GO
+
+
+CREATE    PROCEDURE [dbo].[sp_SetGroups]
+	@GroupID [int]  = NULL OUTPUT,
+	@LicenseID [int]			  = NULL,
+	@NameOfGroup [nvarchar](50)  = NULL,
+	@Detail [nvarchar](100)	  = NULL
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+IF @GroupID IS NULL AND @LicenseID IS NULL
+BEGIN
+    PRINT 'Invalid value of @LicenseID'
+    RETURN
+END
+IF @GroupID IS NULL AND @NameOfGroup IS NULL
+BEGIN
+    PRINT 'Invalid value of @NameOfGroup'
+    RETURN
+END
+IF @GroupID IS NULL AND @Detail IS NULL
+BEGIN
+    PRINT 'Invalid value of @Detail'
+    RETURN
+END
+
+BEGIN TRY
+    IF @GroupID IS NULL
+    BEGIN
+        -- SET @ImportID = 1 + (SELECT TOP(1) @ImportID FROM dbo.ExportOfPreparate ORDER BY @ImportID DESC)
+
+        INSERT dbo.Groups(LicenseID, NameOfGroup,Detail,CreatedBy,CreatedDate)
+        VALUES(@LicenseID, @NameOfGroup,@Detail,@user,@currentdate)
+		SET @GroupID = @@IDENTITY
+    END
+    ELSE
+	IF NOT EXISTS (SELECT 1 FROM dbo.Groups WHERE LicenseID = @LicenseID)
+		BEGIN
+		    PRINT N'Роль з таким @LicenseID не існує';
+		    RETURN;
+		END;
+        UPDATE TOP(1) dbo.Groups
+        SET 
+      LicenseID					= ISNULL (@LicenseID,LicenseID),
+      NameOfGroup				= ISNULL (@NameOfGroup,NameOfGroup),  
+	  Detail						= ISNULL (@Detail,Detail),
+      ModifiedBy = @user,
+      ModifiedDate = @currentdate
+        WHERE GroupID = @GroupID
+END TRY
+BEGIN CATCH
+    PRINT ERROR_MESSAGE()
+END CATCH
+END
+GO
+
+
+CREATE   PROCEDURE [dbo].[sp_SetHistoryOfPurchase]
+	@HistoryID [int] = NULL OUTPUT,
+	@DiscountID [int]			= NULL,
+	@ClientID [int]				   = NULL,
+	@PreparateID [int]			   = NULL,
+	@Count [int]				   = NULL,
+	@Discount [int]				   = NULL,
+	@TotalCost [int]			   = NULL,
+	@DateOfPurchase [datetime]	   = NULL
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+IF @HistoryID IS NULL AND @DiscountID IS NULL
+BEGIN
+    PRINT 'Invalid value of @DiscountID'
+    RETURN
+END
+IF @HistoryID IS NULL AND @ClientID IS NULL
+BEGIN
+    PRINT 'Invalid value of @ClientID'
+    RETURN
+END
+IF @HistoryID IS NULL AND @PreparateID IS NULL
+BEGIN
+    PRINT 'Invalid value of @PreparateID'
+    RETURN
+END
+IF @HistoryID IS NULL AND @Count IS NULL
+BEGIN
+    PRINT 'Invalid value of @Count'
+    RETURN
+END
+IF @HistoryID IS NULL AND @Discount IS NULL
+BEGIN
+    PRINT 'Invalid value of @Discount'
+    RETURN
+END
+IF @HistoryID IS NULL AND @TotalCost IS NULL
+BEGIN
+    PRINT 'Invalid value of @TotalCost'
+    RETURN
+END
+IF @HistoryID IS NULL AND @DateOfPurchase IS NULL
+BEGIN
+    PRINT 'Invalid value of @DateOfPurchase'
+    RETURN
+END
+BEGIN TRY
+    IF @HistoryID IS NULL
+    BEGIN
+        -- SET @ImportID = 1 + (SELECT TOP(1) @ImportID FROM dbo.ExportOfPreparate ORDER BY @ImportID DESC)
+
+        INSERT dbo.HistoryOfPurchase(DiscountID, ClientID, PreparateID, [Count], Discount, TotalCost, DateOfPurchase,CreatedBy,CreatedDate)
+        VALUES(@DiscountID, @ClientID, @PreparateID, @Count, @Discount, @TotalCost, @DateOfPurchase,@user,@currentdate)
+		SET @HistoryID = @@IDENTITY
+    END
+    ELSE
+	IF NOT EXISTS (SELECT 1 FROM dbo.HistoryOfPurchase WHERE DiscountID = @DiscountID)
+	BEGIN
+	    PRINT N'Роль з таким @DiscountID не існує';
+	    RETURN;
+	END;
+	IF NOT EXISTS (SELECT 1 FROM dbo.HistoryOfPurchase WHERE ClientID = @ClientID)
+	BEGIN
+	    PRINT N'Роль з таким @ClientID не існує';
+	    RETURN;
+	END;
+	IF NOT EXISTS (SELECT 1 FROM dbo.HistoryOfPurchase WHERE PreparateID = @PreparateID)
+	BEGIN
+	    PRINT N'Роль з таким @PreparateID не існує';
+	    RETURN;
+	END;
+        UPDATE TOP(1) dbo.HistoryOfPurchase
+        SET 
+      DiscountID					= ISNULL (@DiscountID,DiscountID),
+      ClientID				= ISNULL (@ClientID,ClientID),  
+	  PreparateID						= ISNULL (@PreparateID,PreparateID),
+	  [Count]					= ISNULL (@Count,[Count]),
+      Discount				= ISNULL (@Discount,Discount),  
+	  TotalCost						= ISNULL (@TotalCost,TotalCost),
+	   DateOfPurchase						= ISNULL (@DateOfPurchase,DateOfPurchase),
+      ModifiedBy = @user,
+      ModifiedDate = @currentdate
+        WHERE HistoryID = @HistoryID
+END TRY
+BEGIN CATCH
+    PRINT ERROR_MESSAGE()
+END CATCH
+END
+GO
+
+CREATE    PROCEDURE [dbo].[sp_SetLicense]
+	@LicenseID [int] = NULL OUTPUT,
+	@CodeOfLicense [nvarchar](20)	= NULL,
+	@NameOfGroup [nvarchar](50)	= NULL,
+	@CostOfLicense [float]			= NULL,
+	@StartDate [datetime]			= NULL,
+	@EndDate [datetime]			= NULL
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+IF @LicenseID IS NULL AND @CodeOfLicense IS NULL
+BEGIN
+    PRINT 'Invalid value of @CodeOfLicense'
+    RETURN
+END
+IF @LicenseID IS NULL AND @NameOfGroup IS NULL
+BEGIN
+    PRINT 'Invalid value of @NameOfGroup'
+    RETURN
+END
+IF @LicenseID IS NULL AND @CostOfLicense IS NULL
+BEGIN
+    PRINT 'Invalid value of @CostOfLicense'
+    RETURN
+END
+IF @LicenseID IS NULL AND @StartDate IS NULL
+BEGIN
+    PRINT 'Invalid value of @StartDate'
+    RETURN
+END
+IF @LicenseID IS NULL AND @EndDate IS NULL
+BEGIN
+    PRINT 'Invalid value of @EndDate'
+    RETURN
+END
+BEGIN TRY
+    IF @LicenseID IS NULL
+    BEGIN
+        -- SET @ImportID = 1 + (SELECT TOP(1) @ImportID FROM dbo.ExportOfPreparate ORDER BY @ImportID DESC)
+
+        INSERT dbo.License(CodeOfLicense, NameOfGroup, CostOfLicense, StartDate, EndDate,CreatedBy,CreatedDate)
+        VALUES(@CodeOfLicense, @NameOfGroup, @CostOfLicense, @StartDate, @EndDate,@user,@currentdate)
+		SET @LicenseID = @@IDENTITY
+    END
+    ELSE
+        UPDATE TOP(1) dbo.License
+        SET 
+      CodeOfLicense					= ISNULL (@CodeOfLicense,CodeOfLicense),
+      NameOfGroup				= ISNULL (@NameOfGroup,NameOfGroup),  
+	  CostOfLicense						= ISNULL (@CostOfLicense,CostOfLicense),
+	  StartDate					= ISNULL (@StartDate,StartDate),
+      EndDate				= ISNULL (@EndDate,EndDate),  
+      ModifiedBy = @user,
+      ModifiedDate = @currentdate
+        WHERE LicenseID = @LicenseID
+END TRY
+BEGIN CATCH
+    PRINT ERROR_MESSAGE()
+END CATCH
+END
+GO
+
+
+CREATE     PROCEDURE [dbo].[sp_SetLostOrDamagedPreparate]
+	@LostOrDamagedID [int]  = NULL OUTPUT,
+	@PreparateID [int]					 = NULL,
+	@CountOfDamaged [int]				 = NULL,
+	@CostOfDamaged [float]				 = NULL
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+IF @LostOrDamagedID IS NULL AND @PreparateID IS NULL
+BEGIN
+    PRINT 'Invalid value of @PreparateID'
+    RETURN
+END
+IF @LostOrDamagedID IS NULL AND @CountOfDamaged IS NULL
+BEGIN
+    PRINT 'Invalid value of @CountOfDamaged'
+    RETURN
+END
+IF @LostOrDamagedID IS NULL AND @CostOfDamaged IS NULL
+BEGIN
+    PRINT 'Invalid value of @CostOfDamaged'
+    RETURN
+END
+BEGIN TRY
+    IF @LostOrDamagedID IS NULL
+    BEGIN
+        -- SET @ImportID = 1 + (SELECT TOP(1) @ImportID FROM dbo.ExportOfPreparate ORDER BY @ImportID DESC)
+
+        INSERT dbo.LostOrDamagedPreparate(PreparateID, CountOfDamaged, CostOfDamaged,CreatedBy,CreatedDate)
+        VALUES(@PreparateID, @CountOfDamaged, @CostOfDamaged,@user,@currentdate)
+		SET	@LostOrDamagedID = @@IDENTITY
+    END
+    ELSE
+	IF NOT EXISTS (SELECT 1 FROM dbo.LostOrDamagedPreparate WHERE PreparateID = @PreparateID)
+	 BEGIN
+	     PRINT N'Роль з таким @PreparateID не існує';
+	     RETURN;
+	 END;
+        UPDATE TOP(1) dbo.LostOrDamagedPreparate
+        SET 
+      PreparateID					= ISNULL (@PreparateID,PreparateID),
+      CountOfDamaged				= ISNULL (@CountOfDamaged,CountOfDamaged),  
+	  CostOfDamaged						= ISNULL (@CostOfDamaged,CostOfDamaged),
+      ModifiedBy = @user,
+      ModifiedDate = @currentdate
+        WHERE LostOrDamagedID = @LostOrDamagedID
+END TRY
+BEGIN CATCH
+    PRINT ERROR_MESSAGE()
+END CATCH
+END
+GO
+
+
+CREATE    PROCEDURE [dbo].[sp_SetOrders]
+	@OrderID [int] = NULL OUTPUT,
+	@ClientID [int]				= NULL,
+	@WorkerID [int]				= NULL,
+	@DateOfOrder [datetime]		=  NULL
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+IF @OrderID IS NULL AND @ClientID IS NULL
+BEGIN
+    PRINT 'Invalid value of @ClientID'
+    RETURN
+END
+IF @OrderID IS NULL AND @WorkerID IS NULL
+BEGIN
+    PRINT 'Invalid value of @WorkerID'
+    RETURN
+END
+IF @OrderID IS NULL AND @DateOfOrder IS NULL
+BEGIN
+    PRINT 'Invalid value of @WorkerID'
+    RETURN
+END
+BEGIN TRY
+    IF @OrderID IS NULL
+    BEGIN
+        -- SET @ImportID = 1 + (SELECT TOP(1) @ImportID FROM dbo.ExportOfPreparate ORDER BY @ImportID DESC)
+
+        INSERT dbo.Orders(ClientID, WorkerID, DateOfOrder,CreatedBy,CreatedDate)
+        VALUES(@ClientID, @WorkerID, @DateOfOrder,@user,@currentdate)
+		SET @OrderID = @@IDENTITY
+    END
+    ELSE
+	IF NOT EXISTS (SELECT 1 FROM dbo.Orders WHERE ClientID = @ClientID)
+	 BEGIN
+	     PRINT N'Роль з таким @ClientID не існує';
+	     RETURN;
+	 END;
+	
+	IF NOT EXISTS (SELECT 1 FROM dbo.Orders WHERE WorkerID = @WorkerID)
+	 BEGIN
+	     PRINT N'Роль з таким @WorkerID не існує';
+	     RETURN;
+	 END;
+        UPDATE TOP(1) dbo.Orders
+        SET 
+      ClientID					= ISNULL (@ClientID,ClientID),
+      WorkerID				= ISNULL (@WorkerID,WorkerID),  
+	  DateOfOrder						= ISNULL (@DateOfOrder,DateOfOrder),
+      ModifiedBy = @user,
+      ModifiedDate = @currentdate
+        WHERE OrderID = @OrderID
+END TRY
+BEGIN CATCH
+    PRINT ERROR_MESSAGE()
+END CATCH
+END
+GO
+
+
+CREATE    PROCEDURE [dbo].[sp_SetPreparate]
+@PreparateID [int] = NULL OUTPUT,
+@ImportID [int] = NULL,
+@DisastersID [int] = NULL,
+@GroupID [int] = NULL,
+@ContraindicationID [int] = NULL,
+@NameOfPreparate [nvarchar](50) = NULL,
+@CostOfPreparate [float] = NULL
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+IF @PreparateID IS NULL AND @NameOfPreparate IS NULL
+BEGIN
+    PRINT 'Invalid value of @NameOfPreparate'
+    RETURN
+END
+IF @PreparateID IS NULL AND @CostOfPreparate IS NULL
+BEGIN
+    PRINT 'Invalid value of @CostOfPreparate'
+    RETURN
+END
+BEGIN TRY
+    IF @PreparateID IS NULL
+    BEGIN
+        -- SET @id = 1 + (SELECT TOP(1) id FROM dbo.Person ORDER BY id DESC)
+
+        INSERT dbo.Preparate(ImportID, DisastersID, GroupID, ContraindicationID,NameOfPreparate,CostOfPreparate,CreatedBy,CreatedDate)
+        VALUES(@ImportID, @DisastersID, @GroupID, @ContraindicationID,@NameOfPreparate,@CostOfPreparate,@user,@currentdate)
+
+    END
+    ELSE
+        UPDATE TOP(1) dbo.Preparate
+        SET 
+			ImportID				= ISNULL (@ImportID			,ImportID            ),
+			DisastersID				= ISNULL (@DisastersID			,DisastersID		 ),
+			GroupID					= ISNULL (@GroupID				,GroupID			 ),
+			ContraindicationID		= ISNULL (@ContraindicationID	,ContraindicationID	 ),
+			NameOfPreparate			= ISNULL (@NameOfPreparate		,NameOfPreparate	 ),
+			CostOfPreparate 		= ISNULL (@CostOfPreparate 	,CostOfPreparate 	 ),
+			ModifiedBy = @user,
+			ModifiedDate = @currentdate
+        WHERE PreparateID = @PreparateID
+END TRY
+BEGIN CATCH
+    PRINT ERROR_MESSAGE()
+END CATCH
+END
+GO
+
+
+CREATE    PROCEDURE [dbo].[sp_SetReceipts]
+	@ReceiptID [int]	= NULL OUTPUT,
+	@ClientID [int]	    = NULL,
+	@Date [datetime]    = NULL,
+	@TotalAmount [float]		   = NULL
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+IF @ReceiptID IS NULL AND @ClientID IS NULL
+BEGIN
+    PRINT 'Invalid value of @ClientID'
+    RETURN
+END
+IF @ReceiptID IS NULL AND @Date IS NULL
+BEGIN
+    PRINT 'Invalid value of @Date'
+    RETURN
+END
+IF @ReceiptID IS NULL AND @TotalAmount IS NULL
+BEGIN
+    PRINT 'Invalid value of @TotalAmount'
+    RETURN
+END
+BEGIN TRY
+    IF @ReceiptID IS NULL
+    BEGIN
+        -- SET @ImportID = 1 + (SELECT TOP(1) @ImportID FROM dbo.ExportOfPreparate ORDER BY @ImportID DESC)
+
+        INSERT dbo.Receipts(ClientID, [Date], TotalAmount,CreatedBy,CreatedDate)
+        VALUES(@ClientID, @Date, @TotalAmount,@user,@currentdate)
+		SET @ReceiptID = @@IDENTITY
+    END
+    ELSE
+	 IF NOT EXISTS (SELECT 1 FROM dbo.Receipts WHERE ClientID = @ClientID)
+	 BEGIN
+	     PRINT N'Роль з таким @ClientID не існує';
+	     RETURN;
+	 END;
+
+        UPDATE TOP(1) dbo.Receipts
+        SET 
+      ClientID					= ISNULL (@ClientID,ClientID),
+      [Date]				= ISNULL (@Date,[Date]),  
+	  TotalAmount						= ISNULL (@TotalAmount,TotalAmount),
+      ModifiedBy = @user,
+      ModifiedDate = @currentdate
+        WHERE ReceiptID = @ReceiptID
+END TRY
+BEGIN CATCH
+    PRINT ERROR_MESSAGE()
+END CATCH
+END
+GO
+
+CREATE    PROCEDURE [dbo].[sp_SetWebOfPharmacy]
+	@PharmacyID [int]  = NULL OUTPUT,
+	@WorkerID [int]					= NULL,
+	@BudgetID [int]					= NULL,
+	@ImportID [int]					= NULL,
+	@NameofPharmacy [nvarchar](50)  = NULL,
+	@CountOfWorkers [int]			= NULL,
+	@HomeAddress [nvarchar](50)		= NULL
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+IF @PharmacyID IS NULL AND @WorkerID IS NULL
+BEGIN
+    PRINT 'Invalid value of @WorkerID'
+    RETURN
+END
+IF @PharmacyID IS NULL AND @BudgetID IS NULL
+BEGIN
+    PRINT 'Invalid value of @BudgetID'
+    RETURN
+END
+IF @PharmacyID IS NULL AND @ImportID IS NULL
+BEGIN
+    PRINT 'Invalid value of @ImportID'
+    RETURN
+END
+IF @PharmacyID IS NULL AND @NameofPharmacy IS NULL
+BEGIN
+    PRINT 'Invalid value of @NameofPharmacy'
+    RETURN
+END
+IF @PharmacyID IS NULL AND @CountOfWorkers IS NULL
+BEGIN
+    PRINT 'Invalid value of @CountOfWorkers'
+    RETURN
+END
+IF @PharmacyID IS NULL AND @HomeAddress IS NULL
+BEGIN
+    PRINT 'Invalid value of @HomeAddress'
+    RETURN
+END
+BEGIN TRY
+    IF @PharmacyID IS NULL
+    BEGIN
+        -- SET @ImportID = 1 + (SELECT TOP(1) @ImportID FROM dbo.ExportOfPreparate ORDER BY @ImportID DESC)
+
+        INSERT dbo.WebOfPharmacy(WorkerID, BudgetID, ImportID,NameofPharmacy,CountOfWorkers,HomeAddress,CreatedBy,CreatedDate)
+        VALUES(@WorkerID, @BudgetID, @ImportID,@NameofPharmacy,@CountOfWorkers,@HomeAddress,@user,@currentdate)
+		SET @PharmacyID = @@IDENTITY
+    END
+    ELSE
+	IF NOT EXISTS (SELECT 1 FROM dbo.WebOfPharmacy WHERE WorkerID = @WorkerID)
+    BEGIN
+        PRINT N'Роль з таким @WorkerID не існує';
+        RETURN;
+    END;
+	IF NOT EXISTS (SELECT 1 FROM dbo.WebOfPharmacy WHERE BudgetID = @BudgetID)
+    BEGIN
+        PRINT N'Роль з таким @BudgetID не існує';
+        RETURN;
+    END;
+	IF NOT EXISTS (SELECT 1 FROM dbo.WebOfPharmacy WHERE ImportID = @ImportID)
+    BEGIN
+        PRINT N'Роль з таким @ImportID не існує';
+        RETURN;
+    END;
+
+        UPDATE TOP(1) dbo.WebOfPharmacy
+        SET 
+      WorkerID					= ISNULL (@WorkerID,WorkerID),
+      BudgetID				= ISNULL (@BudgetID,BudgetID),  
+	  ImportID						= ISNULL (@ImportID,ImportID),
+	  NameofPharmacy				= ISNULL (@NameofPharmacy,NameofPharmacy),
+      CountOfWorkers				= ISNULL (@CountOfWorkers,CountOfWorkers),  
+	  HomeAddress						= ISNULL (@HomeAddress,HomeAddress),
+      ModifiedBy = @user,
+      ModifiedDate = @currentdate
+        WHERE PharmacyID = @PharmacyID
+END TRY
+BEGIN CATCH
+    PRINT ERROR_MESSAGE()
+END CATCH
+END
+GO
+
+CREATE    PROCEDURE [dbo].[sp_SetWorkers]
+	@WorkerID [int]  = NULL OUTPUT,
+	@FirstName [nvarchar](50)	  = NULL,
+	@LastName [nvarchar](50)	  = NULL,
+	@Position [nvarchar](50)	  = NULL,
+	@BirthDate [datetime]		  = NULL
+AS
+BEGIN
+DECLARE
+@user [nvarchar](50),
+@currentdate [datetime]
+SET
+@user = USER_NAME()
+SET
+@currentdate = GETDATE()
+IF @WorkerID IS NULL AND @FirstName IS NULL
+BEGIN
+    PRINT 'Invalid value of @FirstName'
+    RETURN
+END
+IF @WorkerID IS NULL AND @LastName IS NULL
+BEGIN
+    PRINT 'Invalid value of @LastName'
+    RETURN
+END
+IF @WorkerID IS NULL AND @Position IS NULL
+BEGIN
+    PRINT 'Invalid value of @Position'
+    RETURN
+END
+IF @WorkerID IS NULL AND @BirthDate IS NULL
+BEGIN
+    PRINT 'Invalid value of @BirthDate'
+    RETURN
+END
+
+BEGIN TRY
+    IF @WorkerID IS NULL
+    BEGIN
+        -- SET @ImportID = 1 + (SELECT TOP(1) @ImportID FROM dbo.ExportOfPreparate ORDER BY @ImportID DESC)
+
+        INSERT dbo.Workers(FirstName, LastName, Position,BirthDate,CreatedBy,CreatedDate)
+        VALUES(@FirstName, @LastName, @Position,@BirthDate,@user,@currentdate)
+		SET @WorkerID = @@IDENTITY
+    END
+    ELSE
+        UPDATE TOP(1) dbo.Workers
+        SET 
+      FirstName					= ISNULL (@FirstName,FirstName),
+      LastName				= ISNULL (@LastName,LastName),  
+	  Position						= ISNULL (@Position,Position),
+	  BirthDate				= ISNULL (@BirthDate,BirthDate),
+      ModifiedBy = @user,
+      ModifiedDate = @currentdate
+        WHERE WorkerID = @WorkerID
+END TRY
+BEGIN CATCH
+    PRINT ERROR_MESSAGE()
+END CATCH
+END
+GO
