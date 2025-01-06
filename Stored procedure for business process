@@ -1,0 +1,65 @@
+USE [Pharmacy]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_SetOrder]    Script Date: 10.12.2024 10:10:02 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE OR ALTER PROCEDURE dbo.SetOrder
+(
+    @InputOrderID INT = NULL OUTPUT, 
+    @InputClientID INT,              
+    @InputWorkerID INT,
+    @InputPreparateID INT,
+    @InputOrderDate DATETIME = NULL 
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY    
+        -- Перевірка на обов'язкові параметри
+        IF @InputClientID IS NULL OR @InputWorkerID IS NULL
+        BEGIN
+            PRINT 'Error: Missing required parameters (ClientID or WorkerID).';
+            RETURN;
+        END
+
+        -- Перевірка на існування клієнта
+        DECLARE @ExistingClientCount INT;
+        SELECT @ExistingClientCount = COUNT(*) FROM dbo.Clients WHERE ClientID = @InputClientID;
+
+        IF @ExistingClientCount = 0
+        BEGIN
+            PRINT 'Client not found, creating new client...';
+            EXECUTE dbo.sp_SetClient
+                @ClientID = @InputClientID OUTPUT;  
+        END
+
+        -- Створення замовлення
+        EXECUTE dbo.sp_SetOrders
+            @OrderID = @InputOrderID OUTPUT,
+            @ClientID = @InputClientID,        
+            @WorkerID = @InputWorkerID,
+            @DateOfOrder = @InputOrderDate;
+
+        -- Виведення препаратів для даного замовлення, якщо вказано @InputPreparateID
+        IF @InputPreparateID IS NOT NULL
+        BEGIN
+            PRINT 'Getting details for PreparateID: ' + CAST(@InputPreparateID AS NVARCHAR(50));
+            
+            -- Отримання інформації про лікарство
+            SELECT p.PreparateID, p.NameOfPreparate, p.CostOfPreparate
+            FROM dbo.Preparate p
+            WHERE p.PreparateID = @InputPreparateID;
+        END
+
+    END TRY
+    BEGIN CATCH
+        PRINT 'Error: ' + ERROR_MESSAGE();
+    END CATCH
+END
+GO
+
